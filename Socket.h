@@ -6,8 +6,10 @@
 class UnicastSocket
 {
 public:
-    UnicastSocket(char ttl);
+    UnicastSocket();
     ~UnicastSocket();
+    int Create(char ttl); // returns 1 on success and 0 on failure
+    int Send();// returns 1 on success and 0 on failure
     LPSTR OnReceive(LPSTR databuf);
 
 private:
