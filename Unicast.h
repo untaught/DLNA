@@ -1,7 +1,7 @@
 #include "MainH.h"
 
-#ifndef SOCKET_H
-#define SOCKET_H
+#ifndef UNICAST_H
+#define UNICAST_H
 
 class UnicastSocket
 {
@@ -10,14 +10,14 @@ public:
     ~UnicastSocket();
     int Create(char ttl); // returns 1 on success and 0 on failure
     int Send();// returns 1 on success and 0 on failure
-    LPSTR OnReceive(LPSTR databuf); //returns databuf[0]=0 on timeout
+    LPSTR OnReceive(LPSTR databuf);
 
 private:
     SOCKET SendSocket;
-
-protected:
     in_addr LocalIP;
     sockaddr_in groupSock;
+
+protected:
     WORD sockVersion;
     WSADATA wsaData;
 };

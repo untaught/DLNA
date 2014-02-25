@@ -1,4 +1,4 @@
-#include "Socket.h"
+#include "Unicast.h"
 //TO DO: 
     //Set LocalIP.s_addr to LocalIPA
 UnicastSocket::UnicastSocket(){}
@@ -24,7 +24,7 @@ int UnicastSocket::Create(char ttl)
         this->~UnicastSocket();
         return 0;
     }
-    //Set timeout if not data is received
+    //Set timeout if no data is received
     int time = 2000;
     if(setsockopt(SendSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&time,sizeof(time)) == SOCKET_ERROR)
     {
@@ -78,9 +78,8 @@ LPSTR UnicastSocket::OnReceive(LPSTR databuf)
     int count = recvfrom(SendSocket, databuf, 700, 0, (SOCKADDR *)&Sender, &SenderAddrSize);
     if (WSAGetLastError() == WSAETIMEDOUT)
     {
-        databuf[0]=0;
         WSACleanup();
-        return databuf;
+        return NULL;
     }
     //SOCKET_ERROR = -1; Closed Connection = 0;
     if((count > 0))
