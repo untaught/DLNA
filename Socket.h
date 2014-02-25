@@ -10,7 +10,7 @@ public:
     ~UnicastSocket();
     int Create(char ttl); // returns 1 on success and 0 on failure
     int Send();// returns 1 on success and 0 on failure
-    LPSTR OnReceive(LPSTR databuf);
+    LPSTR OnReceive(LPSTR databuf); //returns databuf[0]=0 on timeout
 
 private:
     SOCKET SendSocket;
