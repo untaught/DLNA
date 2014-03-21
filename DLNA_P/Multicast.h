@@ -11,7 +11,6 @@ public:
     virtual void OnReceive(int nErrorCode);
     void SetController(Controller *controller);
 private:
-    SOCKADDR_IN m_groupAddr;
     ip_mreq m_membership;
     Controller *controller;
 };

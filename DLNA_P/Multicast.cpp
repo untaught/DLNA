@@ -5,11 +5,6 @@ Multicast::Multicast()
 {
     m_membership.imr_multiaddr.s_addr = inet_addr("239.255.255.250");
     m_membership.imr_interface.s_addr = htons(INADDR_ANY);
-
-    ZeroMemory(&m_groupAddr,sizeof(m_groupAddr));
-    m_groupAddr.sin_family = AF_INET;
-    m_groupAddr.sin_addr.s_addr = inet_addr("239.255.255.250");
-    m_groupAddr.sin_port = htons(1900);
 }
 
 Multicast::~Multicast()
@@ -19,7 +14,7 @@ Multicast::~Multicast()
 
 BOOL Multicast::CreateSocket()
 {
-    if(!Create(1900,SOCK_DGRAM, FD_READ))
+    if(!Create(1900, SOCK_DGRAM, FD_READ))
         return FALSE;
     BOOL MultipleApps = TRUE;		
 	if(!(SetSockOpt(SO_REUSEADDR, (void*)&MultipleApps, sizeof(BOOL), SOL_SOCKET)))
@@ -52,7 +47,7 @@ void Multicast::OnReceive(int nErrorCode)
 	else
 	{
 		if (recv>0) 
-            buffer[recv]=0;
+            buffer[recv] = 0;
 	}
 	CAsyncSocket::OnReceive(nErrorCode); 
 }

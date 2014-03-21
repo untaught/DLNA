@@ -125,6 +125,7 @@ void CDLNA_PDlg::OnBnClickedButton3()
 
 void CDLNA_PDlg::OnBnClickedButton4()
 {
+    CBoxDev.ResetContent();
     int i = 0;
     CHAR *t;
     while (test.devList.m_devList[i])

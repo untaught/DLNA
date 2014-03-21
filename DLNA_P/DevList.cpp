@@ -19,7 +19,7 @@ void DevList::ClearList()
         if (m_devList[i]) 
         {
             delete m_devList[i];
-            m_devList[i]=NULL;
+            m_devList[i] =NULL;
         }
     }
 }
@@ -28,11 +28,11 @@ LPSTR DevList::GetHTTPHeader(LPSTR response, LPSTR key, LPSTR value, int valueSi
 {
     LPSTR v = strstr(response, key);
     if (!v) return "";
-    v+=strlen(key)+1;
+    v+= strlen(key) + 1;
 
     int idx = 0;
-    while (*v && *v!='\r')  value[idx++]=*v++;        
-    value[idx]=0;
+    while (*v && *v!='\r')  value[idx++] = *v++;        
+    value[idx] = 0;
 
     return value;
 }
@@ -41,11 +41,11 @@ LPSTR DevList::GetHTTPBody(LPSTR response, LPSTR key, LPSTR value, int valueSize
 {
     LPSTR v = strstr(response, key);
     if (!v) return "";
-    v+=strlen(key);
+    v+= strlen(key);
 
     int idx = 0;
-    while (*v && *v!='<')  value[idx++]=*v++;
-    value[idx]=0;
+    while (*v && *v!='<')  value[idx++] = *v++;
+    value[idx] = 0;
 
     return value;
 }

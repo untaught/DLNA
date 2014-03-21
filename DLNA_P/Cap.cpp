@@ -13,10 +13,12 @@ Cap::Cap()
     unicastSock.SetController(this);
     multicastSock.SetController(this);
     tcpSock.SetController(this);
-};
+}
+
 Cap::~Cap()
 {
-};
+}
+
 void Cap::OnHttpResponseReceived(LPSTR response, BOOL xml)
 {
     CHAR val[500];

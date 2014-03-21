@@ -56,12 +56,6 @@ BOOL TCP::CreateSocket(LPSTR location)
 
     if(!Create())
         return FALSE;
-    BOOL keepAlive=TRUE;
-    if(!SetSockOpt(SO_KEEPALIVE, &keepAlive, sizeof(BOOL), SOL_SOCKET))
-    {
-        Close();
-        return FALSE;
-    }
     Connect((SOCKADDR *)&m_DevLoc,sizeof(SOCKADDR));
     return TRUE;
 }
@@ -77,7 +71,7 @@ void TCP::OnConnect(int nErrorCode)
     CAsyncSocket::OnConnect(nErrorCode);
 }
 
-BOOL TCP::SendMsg(CHAR *path)
+BOOL TCP::SendMsg(LPSTR path)
 {
     const CHAR MSG[] = "GET %s HTTP/1.1\r\nHOST: %s:%d\r\n\r\n";
     CHAR CompleteMSG[300];
@@ -86,11 +80,6 @@ BOOL TCP::SendMsg(CHAR *path)
         return FALSE;
 
     return TRUE;
-}
-
-void TCP::OnClose(int nErrorCode)
-{
-    Close();
 }
 
 void TCP::OnReceive(int nErrorCode)
