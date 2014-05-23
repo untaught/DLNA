@@ -6,14 +6,15 @@
 #include "afxwin.h"
 #include "Unicast.h"
 #include "Multicast.h"
-#include "TCP.h"
+#include "TCPClient.h"
+#include "TCPServer.h"
 #include "Device.h"
 #include "DevList.h"
 #include "Controller.h"
-#include "Cap.h"
+#include "afxmt.h"
 
 // CDLNA_PDlg dialog
-class CDLNA_PDlg : public CDialog//, public Controller
+class CDLNA_PDlg : public CDialog, public Controller
 {
 // Construction
 public:
@@ -25,8 +26,23 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 //OWN DECLARATIONS
+    virtual void OnHttpResponseReceived(LPSTR response, BOOL xml, BOOL alive);
+    virtual void OnConnectionTimeout();
+    virtual void OnAVTransSetResp(LPSTR response);
+    virtual void OnFileOpenError();
+    virtual void OnSearchComplete();
+    virtual void OnSearchStarted();
+    virtual void OnBadDeviceLocation();
+    virtual void OnNewDeviceFound();
+    virtual void OnDeviceRemoved();
+    virtual void OnNoNotifyForTooLong(LPSTR sn);
 private:
-  Cap test;
+    TCPClient tcpSockClient;
+    TCPServer tcpSockServer;
+    Unicast unicastSock;
+    Multicast multicastSock;
+    DevList devList;
+    CMutex m_mutex;
 
 // Implementation
 protected:
@@ -38,11 +54,13 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-    afx_msg void OnBnClickedButton1();
-    CEdit EBox;
     CComboBox CBox;
+    CComboBox CBoxDev;
+    CEdit EditBox;
+    CButton btn2;
+    afx_msg void OnBnClickedButton1();
     afx_msg void OnBnClickedButton2();
     afx_msg void OnBnClickedButton3();
-    CComboBox CBoxDev;
     afx_msg void OnBnClickedButton4();
+    afx_msg void OnCbnSelchangeCombo2();
 };

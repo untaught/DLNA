@@ -5,11 +5,11 @@ Multicast::Multicast()
 {
     m_membership.imr_multiaddr.s_addr = inet_addr("239.255.255.250");
     m_membership.imr_interface.s_addr = htons(INADDR_ANY);
+    controller = NULL;
 }
 
 Multicast::~Multicast()
 {
-    Close();
 }
 
 BOOL Multicast::CreateSocket()
@@ -46,8 +46,21 @@ void Multicast::OnReceive(int nErrorCode)
 	}
 	else
 	{
-		if (recv>0) 
+        LPSTR type = NULL;
+        LPSTR alive = NULL;
+		if (recv>0)
+        {
             buffer[recv] = 0;
+            type = strstr(buffer, "urn:schemas-upnp-org:device:MediaRenderer:");
+        }
+        
+        if (type && controller)
+        {
+            if (alive = strstr(buffer, "ssdp:alive"))
+                controller->OnHttpResponseReceived(buffer, FALSE, TRUE);
+            else if (alive = strstr(buffer, "ssdp:byebye"))
+                controller->OnHttpResponseReceived(buffer, FALSE, FALSE);    
+        }
 	}
 	CAsyncSocket::OnReceive(nErrorCode); 
 }

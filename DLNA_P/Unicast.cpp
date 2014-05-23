@@ -2,31 +2,30 @@
 #include "Unicast.h"
 #include "Device.h"
 #include "DevList.h"
-#include "Controller.h"
 
 Unicast::Unicast()
 {
     m_Group.sin_family = AF_INET;
     m_Group.sin_addr.s_addr = inet_addr("239.255.255.250");
     m_Group.sin_port = htons(1900);
+    controller = NULL;
 }
 
 Unicast::~Unicast()
 {
-    Close();
 }
 
 BOOL Unicast::CreateSocket(UINT TTL)
 {
     if(!Create(0, SOCK_DGRAM, FD_READ, 0))
         return FALSE;
-    if(SetSockOpt(IP_MULTICAST_TTL, &TTL, sizeof(int), IPPROTO_IP) == 0)
+    if(!SetSockOpt(IP_MULTICAST_TTL, &TTL, sizeof(int), IPPROTO_IP))
     {
         Close();
         return FALSE;
     }
     int loopback = 0;
-    if (SetSockOpt(IP_MULTICAST_LOOP, &loopback, sizeof(int), IPPROTO_IP) == 0)
+    if (!SetSockOpt(IP_MULTICAST_LOOP, &loopback, sizeof(int), IPPROTO_IP))
     {
         Close();
         return FALSE;
@@ -34,13 +33,17 @@ BOOL Unicast::CreateSocket(UINT TTL)
     return TRUE;
 
 }
-BOOL Unicast::SendMsg(LPSTR Msg)
+BOOL Unicast::SendMsg(LPSTR devType)
 {
-    if(SendTo(Msg, strlen(Msg), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)) == SOCKET_ERROR)
-        {int asd = WSAGetLastError();
-    return FALSE;}
-    else
-        return TRUE;
+    const CHAR MSG[] = "M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 1\r\nST: %s\r\n\r\n";
+    CHAR CompleteMSG[1024];
+    sprintf_s(CompleteMSG, sizeof(CompleteMSG), MSG, devType);
+    if (!SendTo(CompleteMSG, strlen(CompleteMSG), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)) || !SendTo(CompleteMSG, strlen(CompleteMSG), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)) || !SendTo(CompleteMSG, strlen(CompleteMSG), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)))
+        return FALSE;
+    CreateTimerQueueTimer(&m_searchTimer, NULL, Unicast::TimerProc, this, 3000, 0, 0);
+    if (controller)
+        controller->OnSearchStarted();
+    return TRUE;
 }
 
 void Unicast::OnReceive(int nErrorCode)
@@ -61,7 +64,7 @@ void Unicast::OnReceive(int nErrorCode)
 	{
 		if (recv>0) 
             buffer[recv]=0;
-        if(controller) controller->OnHttpResponseReceived(buffer, FALSE);
+        if(controller) controller->OnHttpResponseReceived(buffer, FALSE, TRUE);
     }
 	CAsyncSocket::OnReceive(nErrorCode); 
 }
@@ -69,4 +72,18 @@ void Unicast::OnReceive(int nErrorCode)
 void Unicast::SetController(Controller *controller)
 {
     this->controller = controller;
+}
+
+void CALLBACK Unicast::TimerProc(void* lpParametar, BOOLEAN TimerOrWaitFired)
+{
+    Unicast* obj = (Unicast*)lpParametar;
+    obj->QueueTimerHandler();
+}
+
+void Unicast::QueueTimerHandler()
+{
+    if (DeleteTimerQueueTimer(NULL, m_searchTimer, NULL))
+        m_searchTimer = NULL;
+    if (controller)
+        controller->OnSearchComplete();
 }

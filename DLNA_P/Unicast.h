@@ -8,10 +8,13 @@ public:
     Unicast();
     ~Unicast();
     BOOL CreateSocket(UINT TTL);
-    BOOL SendMsg(LPSTR Msg);
+    BOOL SendMsg(LPSTR devType);
     virtual void OnReceive(int nErrorCode);
     void SetController(Controller *controller);
+    void static CALLBACK TimerProc(void* lpParametar, BOOLEAN TimerOrWaitFired = TRUE);
+    void QueueTimerHandler();
 private:
+    HANDLE m_searchTimer;
     SOCKADDR_IN m_Group;
     Controller *controller;
 };
