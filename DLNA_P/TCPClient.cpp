@@ -140,10 +140,10 @@ void TCPClient::OnReceive(int nErrorCode)
     CHAR buffer[15000];
     int recv = Receive(buffer, sizeof(buffer));
     if (recv == SOCKET_ERROR)
-	{
+    {
         CAsyncSocket::OnReceive(nErrorCode);
         return;
-	}
+    }
 	else
 	{
         if (recv > 0)
