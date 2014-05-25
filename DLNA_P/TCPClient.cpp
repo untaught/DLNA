@@ -28,7 +28,7 @@ BOOL TCPClient::CreateSocket(LPSTR location, LPSTR ctrlURL)
     LPSTR ipStartPos = strchr(location, '/') + 2;
     while (*ipStartPos && *ipStartPos != ':')
         ip[i++] = *ipStartPos++;
-	ip[i++]=0;
+    ip[i++]=0;
     
     //take port
     CHAR port[8];
@@ -132,17 +132,17 @@ BOOL TCPClient::SendMsgSOAP()
 
 void TCPClient::OnReceive(int nErrorCode)
 {
-   if (nErrorCode)
-	{
-		CAsyncSocket::OnReceive(nErrorCode);
-		return;
-	}
+    if (nErrorCode)
+    {
+        CAsyncSocket::OnReceive(nErrorCode);
+        return;
+    }
     CHAR buffer[15000];
-	int recv = Receive(buffer, sizeof(buffer));
- 	if (recv == SOCKET_ERROR)
+    int recv = Receive(buffer, sizeof(buffer));
+    if (recv == SOCKET_ERROR)
 	{
-		CAsyncSocket::OnReceive(nErrorCode);
-		return;
+        CAsyncSocket::OnReceive(nErrorCode);
+        return;
 	}
 	else
 	{
@@ -155,8 +155,8 @@ void TCPClient::OnReceive(int nErrorCode)
             if (controller && (m_phase == PHASE_SET_AV_TRANSPORT))
                 controller->OnAVTransSetResp(buffer);
         }
-	}
-	CAsyncSocket::OnReceive(nErrorCode);
+    }
+    CAsyncSocket::OnReceive(nErrorCode);
 }
 
 void TCPClient::SetController(Controller *controller)

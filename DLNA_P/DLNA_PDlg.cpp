@@ -319,11 +319,10 @@ void CDLNA_PDlg::OnNoNotifyForTooLong(LPSTR sn)
     devList.RemoveDevice(sn);
 }
 
-
 void CDLNA_PDlg::OnBnClickedButton1()
 { 
     WCHAR txt[300];
-	CBox.GetLBText(CBox.GetCurSel(), txt);
+    CBox.GetLBText(CBox.GetCurSel(), txt);
     devList.ClearList();
     unicastSock.SendMsg(CW2A(txt));
 }
@@ -336,7 +335,7 @@ void CDLNA_PDlg::OnBnClickedButton2()
 	{
         CString file = fOpenDlg.GetPathName();
         tcpSockServer.SetFilePath(CW2A(file));
-	    EditBox.SetWindowTextW(file);
+        EditBox.SetWindowTextW(file);
         GetDlgItem(IDC_BUTTON3)->EnableWindow(true);
         GetDlgItem(IDC_BUTTON4)->EnableWindow(false);
     }

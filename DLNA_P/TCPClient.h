@@ -27,7 +27,6 @@ public:
     void SetPhase(Phase phase) { m_phase = phase; };
     void static CALLBACK TimerProc(void* lpParametar, BOOLEAN TimerOrWaitFired = TRUE);
     void QueueTimerHandler();
-
 private:
     HANDLE m_connectionTimer;
     Phase m_phase;

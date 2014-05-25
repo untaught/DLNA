@@ -26,20 +26,20 @@ void StreamServer::SendMsg()
 void StreamServer::OnReceive(int nErrorCode)
 {
    if (nErrorCode)
-	{
-		CAsyncSocket::OnReceive(nErrorCode);
-		return;
-	}
+    {
+        CAsyncSocket::OnReceive(nErrorCode);
+        return;
+    }
     CHAR buffer[500];
-	int recv = Receive(buffer, sizeof(buffer));
- 	if (recv == SOCKET_ERROR)
-	{
-		CAsyncSocket::OnReceive(nErrorCode);
-		return;
-	}
+    int recv = Receive(buffer, sizeof(buffer));
+    if (recv == SOCKET_ERROR)
+    {
+        CAsyncSocket::OnReceive(nErrorCode);
+        return;
+    }
 	else
 	{
-		if (recv>0)
+        if (recv>0)
         {
             buffer[recv] = 0;
             if (strstr(buffer, "GET") && (strstr(buffer, "Range:") || strstr(buffer, "Accept-Encoding:")))
@@ -85,13 +85,11 @@ void StreamServer::OnReceive(int nErrorCode)
                     m_sample = NULL;
                 } 
                 else
-                {
                     SendMsg1();
-                }
             }
         }
-	}
-	CAsyncSocket::OnReceive(nErrorCode);
+    }
+    CAsyncSocket::OnReceive(nErrorCode);
 }
 
 void StreamServer::Stream()

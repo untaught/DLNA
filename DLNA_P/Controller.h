@@ -4,7 +4,7 @@
 class Controller
 {
 public:
-	virtual void OnHttpResponseReceived(LPSTR response, BOOL xml, BOOL alive) = 0;
+    virtual void OnHttpResponseReceived(LPSTR response, BOOL xml, BOOL alive) = 0;
     virtual void OnConnectionTimeout() = 0;
     virtual void OnAVTransSetResp(LPSTR response) = 0;
     virtual void OnFileOpenError() = 0;

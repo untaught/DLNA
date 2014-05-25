@@ -39,7 +39,7 @@ void Multicast::OnReceive(int nErrorCode)
 	}
     CHAR buffer[700];
 	int recv = Receive(buffer, sizeof(buffer));
-	if (recv == SOCKET_ERROR)
+    if (recv == SOCKET_ERROR)
 	{
 		CAsyncSocket::OnReceive(nErrorCode);
 		return;
@@ -48,7 +48,7 @@ void Multicast::OnReceive(int nErrorCode)
 	{
         LPSTR type = NULL;
         LPSTR alive = NULL;
-		if (recv>0)
+        if (recv>0)
         {
             buffer[recv] = 0;
             type = strstr(buffer, "urn:schemas-upnp-org:device:MediaRenderer:");
