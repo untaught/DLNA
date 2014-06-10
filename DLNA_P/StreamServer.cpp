@@ -7,11 +7,14 @@
 void StreamServer::StopStream()
 {
     m_continue = false;
-    if (m_partial && m_entire)
+    if (m_partial)
     {
         WaitForSingleObject(m_partial->m_hThread, INFINITE);
-        WaitForSingleObject(m_entire->m_hThread, INFINITE);
         m_partial = NULL;
+    }
+    if (m_entire)
+    {
+        WaitForSingleObject(m_entire->m_hThread, INFINITE);
         m_entire = NULL;
     }
 }
