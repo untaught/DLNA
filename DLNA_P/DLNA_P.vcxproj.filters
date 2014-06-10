@@ -99,6 +99,7 @@
     <None Include="res\DLNA_P.rc2">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\DLNA_P.ico">

@@ -4,7 +4,6 @@
 TCPServer::TCPServer()
 {
     controller = NULL;
-    m_port = 65001;
 }
 
 TCPServer::~TCPServer()
@@ -12,9 +11,9 @@ TCPServer::~TCPServer()
     ClearVector();
 }
 
-BOOL TCPServer::CreateSocket()
+BOOL TCPServer::CreateSocket(UINT port)
 {
-    if(!Create(m_port))
+    if (!Create(port))
         return FALSE;
     BOOL keepAlive = TRUE;
     if(!SetSockOpt(SO_KEEPALIVE, (void*)&keepAlive, sizeof(BOOL), SOL_SOCKET))
@@ -35,6 +34,8 @@ void TCPServer::OnAccept(int nErrorCode)
         return;
     }
     int SAsize = sizeof(SOCKADDR);
+    if (vec.size() > 0)
+        vec.back()->StopStream();
     vec.push_back(new StreamServer(m_filepath, controller));
     if(Accept(*vec.back(), (SOCKADDR *)&m_connectedSockAddr, &SAsize) == SOCKET_ERROR)
     {

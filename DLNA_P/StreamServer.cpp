@@ -4,6 +4,19 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+void StreamServer::StopStream()
+{
+    m_continue = false;
+    if (m_partial && m_entire)
+    {
+        WaitForSingleObject(m_partial->m_hThread, INFINITE);
+        WaitForSingleObject(m_entire->m_hThread, INFINITE);
+        m_partial = NULL;
+        m_entire = NULL;
+    }
+}
+
+
 StreamServer::StreamServer(LPSTR filepath, Controller *controller)
 {
     m_file = NULL;
@@ -12,15 +25,16 @@ StreamServer::StreamServer(LPSTR filepath, Controller *controller)
     m_upperBoundary = 0;
     this->m_filepath = filepath;
     this->controller = controller;
+    m_continue = true;
 }
 
 StreamServer::~StreamServer()
 {
 }
 
-void StreamServer::SendMsg()
+void StreamServer::StartPartialStreamThread()
 {
-    AfxBeginThread(StreamServer::THREAD_FUNC, this);
+    m_partial = AfxBeginThread(StreamServer::PartialStreamThreadFunction, this);
 }
 
 void StreamServer::OnReceive(int nErrorCode)
@@ -61,7 +75,7 @@ void StreamServer::OnReceive(int nErrorCode)
                     value[idx] = 0;
                     m_upperBoundary = atoi(value);
                 }
-                SendMsg();
+                StartPartialStreamThread();
             }
             else if (strstr(buffer, "HEAD"))
                 SendHeadMsg();
@@ -71,7 +85,12 @@ void StreamServer::OnReceive(int nErrorCode)
                 CHAR TypeExtension[20];
                 GetFileTypeAndExtension(TypeExtension);
                 CHAR CompleteMSG[1000];
-                fopen_s(&m_file, m_filepath, "rb");
+                if (fopen_s(&m_file, m_filepath, "rb"))
+                {
+                    if (controller)
+                        controller->OnFileOpenError();
+                    return;
+                }
                 CHAR FULLMSG[] = "HTTP/1.1 200 OK\r\nContent-Length: %d\r\nContent-Type: %s\r\n\r\n";
                 if (GetFileSize() < 104857600) //100 MB
                 {
@@ -85,14 +104,14 @@ void StreamServer::OnReceive(int nErrorCode)
                     m_sample = NULL;
                 } 
                 else
-                    SendMsg1();
+                    StartEntireContentStreamThread();
             }
         }
     }
     CAsyncSocket::OnReceive(nErrorCode);
 }
 
-void StreamServer::Stream()
+void StreamServer::PartialStream()
 {
     BYTE *m_sample;
     CHAR TypeExtension[20];
@@ -101,23 +120,21 @@ void StreamServer::Stream()
     const CHAR MSG[] = "HTTP/1.1 206 Partial Content\r\nContent-Length: %d\r\nContent-Type: %s\r\nContent-Range: bytes %d-%d/%d\r\nTransferMode.DLNA.ORG: Streaming\r\n\r\n";
 
     CHAR CompleteMSG[1000];
-    unsigned int fileSize = GetFileSize();
+    UINT fileSize = GetFileSize();
     if (fopen_s(&m_file, m_filepath, "rb"))
     {
         if (controller)
             controller->OnFileOpenError();
         return;
     }
-    unsigned int part = 104857600; //100 MB
+    UINT part = 104857600; //100 MB
 
     if (m_bottomBoundary > 0 && m_bottomBoundary <= fileSize && m_upperBoundary > 0 && m_upperBoundary <= fileSize)
     {
         fseek(m_file, m_bottomBoundary, SEEK_SET);
         m_sample = new BYTE[m_upperBoundary - m_bottomBoundary + 1];
         fread(m_sample, m_upperBoundary - m_bottomBoundary + 1, 1, m_file);
-
-        sprintf_s(CompleteMSG, sizeof(CompleteMSG), MSG, m_upperBoundary - m_bottomBoundary + 1, TypeExtension, m_bottomBoundary, m_upperBoundary, fileSize);
-    
+        sprintf_s(CompleteMSG, sizeof(CompleteMSG), MSG, m_upperBoundary - m_bottomBoundary + 1, TypeExtension, m_bottomBoundary, m_upperBoundary, fileSize);   
         Send(CompleteMSG, strlen(CompleteMSG));
         Send(m_sample, m_upperBoundary - m_bottomBoundary + 1);
     }
@@ -125,21 +142,22 @@ void StreamServer::Stream()
     {
         if (fileSize > part)
         {
-            unsigned int fullLoops = fileSize / part;
-            unsigned int extraLoop = fileSize % part;
-            unsigned int i = 0;
+            UINT fullLoops = fileSize / part;
+            UINT extraLoop = fileSize % part;
+            UINT i = 0;
             sprintf_s(CompleteMSG, sizeof(CompleteMSG), MSG, GetFileSize(), TypeExtension, m_bottomBoundary, GetFileSize() - 1, fileSize);
             Send(CompleteMSG, strlen(CompleteMSG));
             m_sample = new BYTE[part];
-            while (i < fullLoops)
+            while (i < fullLoops && m_continue)
             {           
                 fread(m_sample, part, 1, m_file);
                 Send(m_sample, part);
+                //Sleep(1000);
                 i++;
             }
             delete[] m_sample;
             m_sample = NULL;
-            if (extraLoop)
+            if (extraLoop && m_continue)
             {
                 m_sample = new BYTE[extraLoop];
                 fread(m_sample, extraLoop, 1, m_file);
@@ -167,24 +185,25 @@ void StreamServer::Stream()
     else if (m_bottomBoundary > 0 && m_bottomBoundary <= fileSize && m_upperBoundary == 0)
     {
         fseek(m_file, m_bottomBoundary, SEEK_SET);
-        unsigned int rest = fileSize - m_bottomBoundary;
+        UINT rest = fileSize - m_bottomBoundary;
         sprintf_s(CompleteMSG, sizeof(CompleteMSG), MSG, fileSize - m_bottomBoundary, TypeExtension, m_bottomBoundary, fileSize - 1, fileSize);
         Send(CompleteMSG, strlen(CompleteMSG));
         if (rest > part)
         {
-            unsigned int fullLoops = fileSize / part;
-            unsigned int extraLoop = fileSize % part;
-            unsigned int i = 0;
+            UINT fullLoops = fileSize / part;
+            UINT extraLoop = fileSize % part;
+            UINT i = 0;
             m_sample = new BYTE[part];
-            while (i < fullLoops)
+            while (i < fullLoops && m_continue)
             {
                 fread(m_sample, part, 1, m_file);
                 Send(m_sample, part);
+                //Sleep(1000);
                 i++;
             }
             delete[] m_sample;
             m_sample = NULL;
-            if (extraLoop)
+            if (extraLoop && m_continue)
             {
                 m_sample = new BYTE[extraLoop];
                 fread(m_sample, extraLoop, 1, m_file);
@@ -213,16 +232,13 @@ void StreamServer::Stream()
     }
 }
 
-UINT StreamServer::THREAD_FUNC(LPVOID param)
+UINT StreamServer::PartialStreamThreadFunction(LPVOID param)
 {
     StreamServer* This = (StreamServer*)param;
-    This->Stream();
+    This->PartialStream();
     return 0;
 }
 
-void StreamServer::OnClose(int nErrorCode)
-{
-}
 
 BOOL StreamServer::SendHeadMsg()
 {   
@@ -244,18 +260,20 @@ StreamServer::StreamServer(const StreamServer &other)
     m_upperBoundary = other.m_upperBoundary;
     m_file = other.m_file;
     m_filepath = other.m_filepath;
+    m_continue = bool(other.m_continue);
 }
 
-StreamServer& StreamServer::operator=(const StreamServer& other)
+StreamServer &StreamServer::operator=(const StreamServer& other)
 {
     m_file = other.m_file;
     m_bottomBoundary = other.m_bottomBoundary;
     m_upperBoundary = other.m_upperBoundary;
     m_filepath = other.m_filepath;
+    m_continue = bool(other.m_continue);
     return *this;
 }
 
-unsigned int StreamServer::GetFileSize()
+UINT StreamServer::GetFileSize()
 {
     struct stat st;
     stat(m_filepath, &st);
@@ -307,19 +325,19 @@ LPSTR StreamServer::GetFileTypeAndExtension(LPSTR TypeExtension)
     return TypeExtension;
 }
 
-void StreamServer::SendMsg1()
+void StreamServer::StartEntireContentStreamThread()
 {
-    AfxBeginThread(StreamServer::THREAD_FUNC1, this);
+    m_entire = AfxBeginThread(StreamServer::EntireStreamThreadFuntion, this);
 }
 
-UINT StreamServer::THREAD_FUNC1(LPVOID param)
+UINT StreamServer::EntireStreamThreadFuntion(LPVOID param)
 {
     StreamServer* This = (StreamServer*)param;
-    This->Stream1();
+    This->EntireStream();
     return 0;
 }
 
-void StreamServer::Stream1()
+void StreamServer::EntireStream()
 {
     BYTE *m_sample;
     CHAR TypeExtension[20];
@@ -332,23 +350,22 @@ void StreamServer::Stream1()
         return;
     }
     CHAR FULLMSG[] = "HTTP/1.1 200 OK\r\nAccept-Ranges: bytes\r\nContent-Length: %d\r\nContent-Type: %s\r\nTransferMode.DLNA.ORG: Streaming\r\nConnection: close\r\n\r\n\0";
-
-    unsigned int compl_parts = GetFileSize() / 104857600;
-    unsigned int final_part = GetFileSize() % 104857600;
-    unsigned int i = 0;
+    UINT compl_parts = GetFileSize() / 104857600;
+    UINT final_part = GetFileSize() % 104857600;
+    UINT i = 0;
     sprintf_s(CompleteMSG, sizeof(CompleteMSG), FULLMSG, GetFileSize(), TypeExtension);
     Send(CompleteMSG, strlen(CompleteMSG));
     m_sample = new BYTE[104857600];
-    while ((i < compl_parts))
+    while (i < compl_parts && m_continue)
     {
         fread(m_sample, 104857600, 1, m_file);
         Send(m_sample, 104857600);
+        //Sleep(1000);
         i++;
-        Sleep(1000);
     }
     delete[] m_sample;
     m_sample = NULL;
-    if (final_part)
+    if (final_part && m_continue)
     {
         m_sample = new BYTE[final_part];
         fread(m_sample, final_part, 1, m_file);

@@ -7,7 +7,7 @@ class Unicast: public CAsyncSocket
 public:
     Unicast();
     ~Unicast();
-    BOOL CreateSocket(UINT TTL);
+    BOOL CreateSocket(UINT TTL = 32);
     BOOL SendMsg(LPSTR devType);
     virtual void OnReceive(int nErrorCode);
     void SetController(Controller *controller);

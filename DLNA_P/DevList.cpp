@@ -49,16 +49,6 @@ LPSTR DevList::GetHTTPHeader(LPSTR response, LPSTR key, LPSTR value, int valueSi
     while (strlen(value) && isspace(value[strlen(value) - 1]))	value[strlen(value) - 1] = 0;	// strip trailing whitespace
 
     return value;
-
-    /*LPSTR v = strstr(response, key);
-    if (!v) return "";
-    v += strlen(key) + 1;
-
-    int idx = 0;
-    while (*v && *v!='\r')  value[idx++] = *v++;        
-    value[idx] = 0;
-
-    return value;*/
 }
 
 LPSTR DevList::GetHTTPBody(LPSTR response, LPSTR key, LPSTR value, int valueSize)
@@ -87,14 +77,14 @@ int DevList::AddDev(LPSTR usn)
     return pos;
 }
 
-int DevList::IsDevInList(LPSTR usn_udn)
+int DevList::IsDevInList(LPSTR usn)
 {
     int fres = -1;
     for (int i = 0; i < _countof(m_devList); i++)
     {
         if (!m_devList[i]) continue;
         LPSTR cusn = m_devList[i]->GetSN();
-        if (!strcmp(cusn, usn_udn) || strstr(cusn, usn_udn)) 
+        if (!strcmp(cusn, usn) || strstr(cusn, usn)) 
         {
             fres = i;
             m_devList[i]->RefreshTimer();

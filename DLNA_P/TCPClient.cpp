@@ -179,7 +179,7 @@ void CALLBACK TCPClient::TimerProc(void* lpParametar, BOOLEAN TimerOrWaitFired)
     obj->QueueTimerHandler();
 }
 
-void TCPClient::QueueTimerHandler() 
+void TCPClient::QueueTimerHandler()
 {
     DeleteTimerQueueTimer(NULL, m_connectionTimer, NULL);
     if (controller)

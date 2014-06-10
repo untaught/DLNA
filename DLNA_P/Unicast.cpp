@@ -17,7 +17,7 @@ Unicast::~Unicast()
 
 BOOL Unicast::CreateSocket(UINT TTL)
 {
-    if(!Create(0, SOCK_DGRAM, FD_READ, 0))
+    if (!Create(0, SOCK_DGRAM, FD_READ | FD_OOB))
         return FALSE;
     if(!SetSockOpt(IP_MULTICAST_TTL, &TTL, sizeof(int), IPPROTO_IP))
     {
@@ -38,7 +38,7 @@ BOOL Unicast::SendMsg(LPSTR devType)
     const CHAR MSG[] = "M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 1\r\nST: %s\r\n\r\n";
     CHAR CompleteMSG[1024];
     sprintf_s(CompleteMSG, sizeof(CompleteMSG), MSG, devType);
-    if (!SendTo(CompleteMSG, strlen(CompleteMSG), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)) || !SendTo(CompleteMSG, strlen(CompleteMSG), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)) || !SendTo(CompleteMSG, strlen(CompleteMSG), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)))
+    if (SendTo(CompleteMSG, strlen(CompleteMSG), (SOCKADDR *)&m_Group, sizeof(SOCKADDR)) == SOCKET_ERROR)
         return FALSE;
     CreateTimerQueueTimer(&m_searchTimer, NULL, Unicast::TimerProc, this, 3000, 0, 0);
     if (controller)

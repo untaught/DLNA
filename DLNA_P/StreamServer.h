@@ -2,6 +2,7 @@
 #define StreamServer_H
 
 #include "Controller.h"
+#include <atomic>
 
 class StreamServer: public CAsyncSocket
 {
@@ -10,21 +11,23 @@ public:
     ~StreamServer();
     StreamServer(const StreamServer &other);
     StreamServer & operator= (const StreamServer &other);
-    void SendMsg();
-    void SendMsg1();
+    void StartPartialStreamThread();
+    void StartEntireContentStreamThread();
     BOOL SendHeadMsg();
-    unsigned int GetFileSize();
+    UINT GetFileSize();
     LPSTR GetFileTypeAndExtension(LPSTR TypeExtension);
-    void Stream();
-    void Stream1();
+    void PartialStream();
+    void EntireStream();
     virtual void OnReceive(int nErrorCode);
-    virtual void OnClose(int nErrorCode);
-    static UINT THREAD_FUNC(LPVOID param);
-    static UINT THREAD_FUNC1(LPVOID param);
+    static UINT PartialStreamThreadFunction(LPVOID param);
+    static UINT EntireStreamThreadFuntion(LPVOID param);
+    void StopStream();
 private:
+    CWinThread *m_partial, *m_entire;
+    std::atomic<bool> m_continue;
     FILE *m_file;
     LPSTR m_filepath;
-    unsigned int m_bottomBoundary, m_upperBoundary;
+    UINT m_bottomBoundary, m_upperBoundary;
     Controller *controller;
 };
 

@@ -22,7 +22,7 @@ BOOL Multicast::CreateSocket()
         Close();
         return FALSE;
     }
-    if(!SetSockOpt(IP_ADD_MEMBERSHIP,&m_membership,sizeof(ip_mreq),IPPROTO_IP))
+    if (!SetSockOpt(IP_ADD_MEMBERSHIP, &m_membership, sizeof(m_membership), IPPROTO_IP))
     {
         Close();
         return FALSE;

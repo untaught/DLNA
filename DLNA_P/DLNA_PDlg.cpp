@@ -54,7 +54,7 @@ BOOL CDLNA_PDlg::OnInitDialog()
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 
-    BOOL OK = tcpSockServer.CreateSocket() && unicastSock.CreateSocket(4) && multicastSock.CreateSocket();
+    BOOL OK = tcpSockServer.CreateSocket() && unicastSock.CreateSocket() && multicastSock.CreateSocket();
     if (!OK) 
 	{
         MessageBox(_T("Could not create required sockets!"), _T("Error"), MB_OK | MB_ICONHAND);
@@ -132,14 +132,14 @@ void CDLNA_PDlg::OnHttpResponseReceived(LPSTR response, BOOL xml, BOOL alive)
             val[0] = 0;
             devList.GetHTTPHeader(response, "ST:", val, sizeof(val));
             if (strstr(val, "MediaRenderer"))
-                devList.m_devList[idx]->SetType(MediaRender);
+                devList.m_devList[idx]->SetType(TYPE_MEDIARENDERER);
             else
             {
                 devList.GetHTTPHeader(response, "NT:", val, sizeof(val));
                 if (strstr(val, "MediaRenderer"))
-                    devList.m_devList[idx]->SetType(MediaRender);
+                    devList.m_devList[idx]->SetType(TYPE_MEDIARENDERER);
                 else
-                devList.m_devList[idx]->SetType(Other);
+                devList.m_devList[idx]->SetType(TYPE_OTHER);
             }
         }
         else
@@ -167,7 +167,7 @@ void CDLNA_PDlg::OnHttpResponseReceived(LPSTR response, BOOL xml, BOOL alive)
             if (service)
                 devList.GetHTTPBody(service, "<controlURL>", val, sizeof(val));
             if (strlen(val))
-                devList.m_devList[idx]->SetConnMgrUR(val);
+                devList.m_devList[idx]->SetConnMgrURL(val);
             val[0] = 0;
             service = strstr(response, ":AVTransport</serviceId>");
             if (service)
@@ -363,6 +363,7 @@ void CDLNA_PDlg::OnBnClickedButton4()
     GetDlgItem(IDC_BUTTON3)->EnableWindow(true);
     GetDlgItem(IDC_BUTTON4)->EnableWindow(false);
     GetDlgItem(IDC_COMBO2)->EnableWindow(true);
+    tcpSockServer.vec.back()->StopStream();
 }
 
 

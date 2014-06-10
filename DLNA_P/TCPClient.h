@@ -23,7 +23,7 @@ public:
     virtual void OnReceive(int nErrorCode);
     virtual void OnConnect(int nErrorCode);
     void SetController(Controller *controller);
-    int GetPhase() { return m_phase; };
+    Phase GetPhase() { return m_phase; };
     void SetPhase(Phase phase) { m_phase = phase; };
     void static CALLBACK TimerProc(void* lpParametar, BOOLEAN TimerOrWaitFired = TRUE);
     void QueueTimerHandler();

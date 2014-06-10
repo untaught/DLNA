@@ -4,7 +4,7 @@
 Device::Device(Controller *controller)
 {
     this->controller = controller;
-    m_type = NotSet;
+    m_type = TYPE_NOTSET;
     ZeroMemory(m_manufacturer,sizeof(m_manufacturer));
     ZeroMemory(m_modelName,sizeof(m_modelName));
     ZeroMemory(m_SN,sizeof(m_SN));
